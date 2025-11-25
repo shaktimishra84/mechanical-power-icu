@@ -1,0 +1,17 @@
+{
+  "VC": {
+    "RR -2":   {"mean_abs_drop": 1.77, "mean_rel_drop": 0.117},
+    "VT -50":  {"mean_abs_drop": 1.16, "mean_rel_drop": 0.076},
+    "PEEP -1": {"mean_abs_drop": 3.56, "mean_rel_drop": 0.125}
+  },
+  "PC": {
+    "RR -2":       {"mean_abs_drop": 1.77, "mean_rel_drop": 0.117},
+    "ΔPinsp -2":   {"mean_abs_drop": 2.31, "mean_rel_drop": 0.264},
+    "PEEP -1":     {"mean_abs_drop": 3.56, "mean_rel_drop": 0.125}
+  },
+  "PRVC": {
+    "RR -2":       {"mean_abs_drop": 1.77, "mean_rel_drop": 0.117},
+    "ΔPinsp -2":   {"mean_abs_drop": 2.31, "mean_rel_drop": 0.264},
+    "PEEP -1":     {"mean_abs_drop": 3.56, "mean_rel_drop": 0.125}
+  }
+}
