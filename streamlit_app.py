@@ -66,3 +66,10 @@ if submitted:
 
     except Exception as e:
         st.error(str(e))
+# in app_mp.py or streamlit_app.py
+import streamlit as st
+import mp_calc  # <-- has the docstring at top
+
+with st.expander("What do these inputs mean and where to see them on the ventilator?"):
+    help_md = mp_calc.__doc__ or "Help text not found. Ensure the docstring is the first line in mp_calc.py."
+    st.markdown(help_md)
