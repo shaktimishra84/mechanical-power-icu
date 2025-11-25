@@ -2,6 +2,61 @@
 # Mechanical Power calculator (VC simplified and PC/PRVC simplified)
 # Uses the two formulas you approved.
 
+"""
+Clinician quick guide — variables and where to read them on the ventilator
+Units expected: RR = breaths/min; VT = mL (code converts to L); pressures = cmH2O; Cstat = L/cmH2O; height = cm.
+
+RR (total respiratory rate)
+• Meaning: breaths per minute actually delivered (machine + patient-triggered).
+• Where on vent: “fTotal”, “f tot”, “Total RR”.
+• Tip: if patient is stable and not auto-cycling, RR set ≈ total; otherwise use total.
+
+VT (tidal volume, exhaled) [vt_ml]
+• Meaning: the volume leaving the lungs each breath.
+• Where on vent: “VTe”, “Vt exp”, “VTE”.
+• Tip: prefer exhaled VT; in VC you may use VT set only if VTe not shown or large leak makes VTe unreliable.
+
+PEEP [peep]
+• Meaning: end-expiratory positive pressure (set).
+• Where on vent: “PEEP”.
+
+Pplat (plateau pressure) [pplat]
+• Meaning: alveolar pressure during an inspiratory hold (no flow) in VC/PRVC.
+• Where on vent: “Pplat” after performing inspiratory pause/hold 0.3–0.5 s.
+• Not available in pure PC; if missing and Cstat is known, this file can estimate it from VT/Cstat.
+
+Ppeak / PIP [ppeak / pip]
+• Meaning: peak airway pressure reached during inspiration.
+• Where on vent: “Ppeak”, “Pmax”, “PIP”.
+• In VC, if Ppeak is missing but Pplat present, code uses Ppeak ≈ Pplat + 5 cmH2O.
+• In PC/PRVC, displayed PIP = PEEP + ΔPinsp.
+
+ΔPinsp (pressure above PEEP) [delta_pinsp]
+• Meaning: inspiratory pressure set above PEEP in PC/PRVC.
+• Where on vent: “PC above PEEP”, “Pinsp”, “ΔP control”.
+• If not shown, use ΔPinsp = PIP − PEEP.
+
+Cstat (static compliance) [cstat_L_per_cmH2O]
+• Meaning: ΔV/ΔP with no flow (static). Helpful when Pplat is unavailable.
+• Where on vent: “Cstat”, “Compliance”.
+• If not displayed: Cstat ≈ VTe(L) / (Pplat − PEEP).
+
+PBW, sex, height [sex, height_cm]
+• Used to compute predicted body weight and VT/PBW for guardrails (target 4–8 mL/kg).
+
+Data entry tips
+• Enter values averaged over the last 1–2 minutes at steady state.
+• PRVC behaves like PC for these formulas: use ΔPinsp (or PIP − PEEP).
+• If there is a major leak, prefer VC: VT set + measured Pplat; avoid inferring Pplat from Ppeak.
+• Guardrails in this app: VT/PBW 4–8 mL/kg, RR 8–35, PEEP 5–15, Pplat/PIP ≤30.
+
+Brand label quick map
+• Servo-i/u: RR “f tot”; VT “VTe”; Ppeak “Ppeak”; Pplat via insp hold; ΔPinsp “PC above PEEP”.
+• Dräger Evita/Infinity: RR “f total”; VT “Vt exp”; Ppeak “Pmax”; Pplat via insp hold; ΔPinsp “Pinsp”.
+• Hamilton G5/C3: RR “fTotal”; VT “VTE”; Ppeak “Ppeak”; Pplat via insp hold; ΔPinsp “Pinsp/ΔP control”.
+• Puritan Bennett 840/980: RR “Total RR”; VT “Vte”; Ppeak “Ppeak”; Pplat via insp hold; ΔPinsp “PC above PEEP”.
+"""
+
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
