@@ -1,6 +1,8 @@
 import streamlit as st
 from dataclasses import dataclass
 
+from objective import best_setting, evaluate, pbw_kg
+
 # -----------------------------
 # Core formulas (locked)
 # -----------------------------
@@ -108,7 +110,11 @@ def classify_recruitability(mp_low: float, peep_low: float,
 st.set_page_config(page_title="Mechanical Power & Recruitability", page_icon="🫁", layout="centered")
 st.title("Mechanical Power & Recruitability Tool")
 
-tab1, tab2 = st.tabs(["Mechanical Power (single setting)", "Recruitability (two PEEP levels)"])
+tab1, tab2, tab3 = st.tabs([
+    "Mechanical Power (single setting)",
+    "Recruitability (two PEEP levels)",
+    "Best setting (protective)",
+])
 
 # -------- Tab 1: Single setting MP --------
 with tab1:
@@ -251,6 +257,57 @@ with tab2:
                     f"ΔMP = {result['delta_mp']:.2f} J/min "
                     f"({result['delta_pct']:.1f}% change from low to high PEEP)"
                 )
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# -------- Tab 3: Best protective setting (digital-lung objective) --------
+with tab3:
+    st.subheader("Best protective setting")
+
+    st.caption("Searches the digital-lung grid for the lowest mechanical power plus driving-pressure "
+               "and overdistension penalties, among settings with Pplat ≤ 30 cmH2O, ΔP ≤ 15 cmH2O "
+               "and minute ventilation ≥ 100 mL/kg PBW/min. Uses the engine's population default "
+               "parameters. Decision support only; does not check gas exchange.")
+
+    with st.form("best_setting_form"):
+        c1, c2 = st.columns(2)
+        with c1:
+            sex_b = st.selectbox("Sex", ["Male", "Female"], key="sex_b")
+        with c2:
+            height_b = st.number_input("Height (cm)", min_value=100.0, max_value=230.0, value=170.0, step=1.0, key="height_b")
+
+        c3, c4, c5, c6 = st.columns(4)
+        with c3:
+            rr_b = st.number_input("RR (breaths/min)", min_value=1.0, max_value=80.0, value=20.0, step=1.0, key="rr_b")
+        with c4:
+            vt_b = st.number_input("VT (mL)", min_value=10.0, max_value=2000.0, value=420.0, step=10.0, key="vt_b")
+        with c5:
+            peep_b = st.number_input("PEEP (cmH2O)", min_value=0.0, max_value=40.0, value=8.0, step=1.0, key="peep_b")
+        with c6:
+            cstat_b = st.number_input("Cstat (mL/cmH2O)", min_value=5.0, max_value=200.0, value=40.0, step=1.0, key="cstat_b")
+
+        sub_b = st.form_submit_button("Find best setting")
+
+    if sub_b:
+        try:
+            pbw = pbw_kg(sex_b, height_b)
+            current = evaluate(cstat_b, pbw, vt_b / pbw, peep_b, rr_b)
+            best = best_setting(cstat_b, pbw)
+
+            st.write(f"PBW {pbw:.1f} kg · current VT {current.vt_kg:.1f} mL/kg · "
+                     f"current VE {current.ve_kg:.0f} mL/kg/min · "
+                     f"current Pplat {current.pplat:.1f} cmH2O · ΔP {current.dp:.1f} cmH2O")
+            st.write(f"Current J {current.J:.2f} J/min (MP {current.mp:.2f}, "
+                     f"driving-pressure penalty {current.p_dr:.2f}, overdistension penalty {current.p_od:.2f})")
+
+            if best is None:
+                st.error("No grid setting is protective (Pplat ≤ 30, ΔP ≤ 15 cmH2O, VE ≥ 100 mL/kg PBW/min) for these inputs.")
+            else:
+                st.success(f"Best: VT {best.vt_kg:g} mL/kg ({best.vt_kg * pbw:.0f} mL) · "
+                           f"PEEP {best.peep:g} cmH2O · RR {best.rr:g}")
+                st.write(f"J {best.J:.2f} J/min (MP {best.mp:.2f}) · VE {best.ve_kg:.0f} mL/kg/min · "
+                         f"Pplat {best.pplat:.1f} cmH2O · ΔP {best.dp:.1f} cmH2O")
 
         except Exception as e:
             st.error(f"Error: {e}")
